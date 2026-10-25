@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. User Model (Synced with Clerk Authentication)
+model User {
+  id                String     @id @default(uuid())
+  clerkId           String     @unique
+  name              String?
+  email             String     @unique
+  profileImage      String?
+  tier              String?    @default("Free")
+  credits           Int        @default(100)
+
+  // Global Connected Integrations
+  discordWebhookUrl String?
+  slackWebhookUrl   String?
+  notionAccessToken String?
+  notionDbId        String?
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleEmail        String?
+  googleFolderId     String?
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  // Relationships
+  workflows         Workflow[]
+}
+
+
+// 2. Workflow Model (Visual Automation Flow)
+model Workflow {
+  id                String    @id @default(uuid())
+  nodes             String?   // JSON string of React Flow nodes
+  edges             String?   // JSON string of React Flow connecting lines
+  name              String
+  description       String?
+  publish           Boolean   @default(false)
+  cronPath          String?
+  flowPath          String?
+  googleFolderId    String?
+
+  // Third-party Action Templates & Webhook URLs
+  discordTemplate   String?
+  discordWebhookUrl String?   // <-- NEW
+  notionTemplate    String?
+  slackTemplate     String?
+  slackWebhookUrl   String?   // <-- NEW
+  slackChannels     String[]  @default([])
+  slackAccessToken  String?
+  notionAccessToken String?
+  notionDbId        String?
+
+  // User Relationship (Foreign Key)
+  userId            String
+  user              User      @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
