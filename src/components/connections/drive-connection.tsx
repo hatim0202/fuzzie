@@ -164,7 +164,7 @@ export default function DriveConnectionCard() {
         setGoogleEmail(res.email || "Connected");
         setShowManualInput(false);
         setManualToken("");
-        setStatus({ type: "success", text: res.message });
+        setStatus({ type: "success", text: res.message || "Google Drive token saved successfully!" });
         handleFetchFiles();
       } else {
         setStatus({ type: "error", text: res.error || "Failed to save token" });
@@ -191,7 +191,7 @@ export default function DriveConnectionCard() {
       if (res.status === 200) {
         setStatus({
           type: "success",
-          text: res.message,
+          text: res.message || "Google Drive trigger event verified successfully!",
         });
       } else {
         setStatus({ type: "error", text: res.error || "Failed to verify Drive trigger" });
