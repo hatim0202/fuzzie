@@ -38,11 +38,12 @@ async function getValidAccessToken(clerkId: string): Promise<string | null> {
         return refreshed.accessToken;
       }
     }
-  } catch {
-    // ignore
-  }
 
-  return user.googleAccessToken;
+    // Token is invalid and refresh token could not renew it (e.g. invalid_grant / expired)
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 // 1. Get Google Drive Connection Status
@@ -51,10 +52,11 @@ export async function onGetDriveConnection() {
     const user = await currentUser();
     if (!user) return { isConnected: false, email: null, folderId: null, hasEnvKeys: false };
 
+    const token = await getValidAccessToken(user.id);
+
     const dbUser = await db.user.findUnique({
       where: { clerkId: user.id },
       select: {
-        googleAccessToken: true,
         googleEmail: true,
         googleFolderId: true,
       },
@@ -65,7 +67,7 @@ export async function onGetDriveConnection() {
     );
 
     return {
-      isConnected: Boolean(dbUser?.googleAccessToken),
+      isConnected: Boolean(token),
       email: dbUser?.googleEmail || null,
       folderId: dbUser?.googleFolderId || null,
       hasEnvKeys,
@@ -169,7 +171,7 @@ export async function onGetDriveFiles(folderId?: string) {
 
     const token = await getValidAccessToken(user.id);
     if (!token) {
-      return { status: 400, error: "Google Drive is not connected yet", files: [] };
+      return { status: 401, error: "Google Drive session expired. Please click 'Disconnect' and reconnect your Google account.", files: [] };
     }
 
     const dbUser = await db.user.findUnique({

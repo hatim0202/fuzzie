@@ -3,7 +3,10 @@ import { google } from "googleapis";
 export function getGoogleOAuthClient(redirectUri?: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const rawUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  const baseUrl = rawUrl.replace(/\/+$/, "");
   const callbackUrl = redirectUri || `${baseUrl}/api/auth/callback/google`;
 
   if (!clientId || !clientSecret) {
